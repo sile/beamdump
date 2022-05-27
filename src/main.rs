@@ -4,6 +4,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[clap(version)]
 enum Args {
+    Summary { beam_file: PathBuf },
     AtomTable { beam_file: PathBuf },
     LiteralTable { beam_file: PathBuf },
     ImportTable { beam_file: PathBuf },
@@ -12,6 +13,9 @@ enum Args {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args {
+        Args::Summary { beam_file } => {
+            show_summary(beam_file)?;
+        }
         Args::AtomTable { beam_file } => {
             dump_atom_table(beam_file)?;
         }
@@ -21,6 +25,18 @@ fn main() -> anyhow::Result<()> {
         Args::ImportTable { beam_file } => {
             dump_import_table(beam_file)?;
         }
+    }
+    Ok(())
+}
+
+fn show_summary(path: PathBuf) -> anyhow::Result<()> {
+    let beam = beam_file::RawBeamFile::from_file(path)?;
+    for chunk in beam.chunks {
+        println!(
+            "[{}] {} bytes",
+            std::str::from_utf8(&chunk.id)?,
+            chunk.data.len()
+        );
     }
     Ok(())
 }
